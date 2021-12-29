@@ -34,6 +34,8 @@ async def pass_stuff(uname,pwd,code,is2fa,codetype):
         
     try:
         codex = False
+        is2fa = is2fa.lower()
+        codetype = codetype.lower()
         if is2fa=="yes":
             if codetype=="email":
                 codex = False
