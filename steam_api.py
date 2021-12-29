@@ -41,6 +41,9 @@ async def token():
         resp = await steam_backend.pass_stuff(uname,pwd,code,is2fa,codetype)
         rsp = make_response(resp)
         return rsp
+    if request.method == 'GET':
+        rsp = make_response("Use POST method!")
+        return rsp
 
 
 
