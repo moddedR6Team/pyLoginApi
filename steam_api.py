@@ -33,6 +33,8 @@ async def token():
     uname = request.headers.get('username')
     pwd = request.headers.get('password')
     is2fa = request.headers.get('has2fa')
+    if is2fa is not None:
+      is2fa = "no"
     code = request.headers.get('code')
     codetype = request.headers.get('codetype')
     if request.method == 'POST':
