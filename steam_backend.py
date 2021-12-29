@@ -1,10 +1,8 @@
 from steam.client import SteamClient
-from steam.enums import EResult
 from steam.exceptions import SteamError
 
 async def pass_stuff(uname,pwd,code,is2fa,codetype):
     client = SteamClient()
-    
     
     @client.on("connected")
     @client.on(client.EVENT_CONNECTED)
@@ -20,6 +18,7 @@ async def pass_stuff(uname,pwd,code,is2fa,codetype):
     @client.on(client.EVENT_ERROR)
     async def error(result):
         print("Logon result:", repr(result))
+        return repr(result)
             
     @client.on('auth_code_required')
     @client.on(client.EVENT_AUTH_CODE_REQUIRED)
@@ -50,7 +49,8 @@ async def pass_stuff(uname,pwd,code,is2fa,codetype):
             await auth_code(codex)
         
         if client.EVENT_ERROR:
-            await error(res)
+            error_result = await error(res)
+            return error_result
         
         if client.EVENT_CONNECTED:
             await handle_connected()
