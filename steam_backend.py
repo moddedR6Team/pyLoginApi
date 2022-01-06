@@ -1,92 +1,78 @@
 from steam.client import SteamClient
 from steam.exceptions import SteamError
 
-async def pass_stuff(uname,pwd,code,is2fa,codetype):
-    client = SteamClient()
-    
-    @client.on("connected")
-    @client.on(client.EVENT_CONNECTED)
-    async def handle_connected():
-        print("Connected to %s", client.current_server_addr)
+import gevent.monkey
+gevent.monkey.patch_all()
 
-    @client.on("reconnect")
-    @client.on(client.EVENT_RECONNECT)
-    async def handle_reconnect(delay):
-        print("Reconnect in %ds...", delay)
+class SteamWorker(object):
+    def __init__(self):
+        
+        self.steam = client = SteamClient()
+        client.set_credential_location(".")
 
-    @client.on('error')
-    @client.on(client.EVENT_ERROR)
-    async def error(result):
-        print("Logon result:", repr(result))
-        return repr(result)
-            
-    @client.on('auth_code_required')
-    @client.on(client.EVENT_AUTH_CODE_REQUIRED)
-    async def auth_code(is_2fa):
-        if is_2fa:
-            print("2FA Code")
-            client.login(two_factor_code=code,username=uname,password=pwd,login_id=1337)
-        else:
-            print("Email Code")
-            client.login(auth_code=code,username=uname,password=pwd,login_id=1337)
+        @client.on("error")
+        def handle_error(result):
+            print("Logon result: ", repr(result))
 
-        
-    try:
-        codex = False
-        is2fa = is2fa.lower()
-        codetype = codetype.lower()
-        if is2fa=="yes":
-            if codetype=="email":
-                codex = False
-                res = client.login(auth_code=code,username=uname,password=pwd,login_id=1337)
-            if codetype=="code":
-                codex = True
-                res = client.login(two_factor_code=code,username=uname,password=pwd,login_id=1337)
-        else:
-            res = client.login(username=uname,password=pwd,login_id=1337)
-        
-        if client.EVENT_AUTH_CODE_REQUIRED:
-            await auth_code(codex)
-        
-        if client.EVENT_ERROR:
-            error_result = await error(res)
-            return error_result
-        
-        if client.EVENT_CONNECTED:
-            await handle_connected()
-        
-        
-        if client.EVENT_CONNECTED:
+        @client.on("channel_secured")
+        def send_login():
+            if self.steam.relogin_available:
+                self.steam.relogin()
+                
+        @client.on("connected")
+        def handle_connected():
+            print("Connected to ", client.current_server_addr)
+
+        @client.on("logged_on")
+        def handle_after_logon():
+
+            print("-"*30)
             print("Logged on as:", client.user.name)
-            #response = client.licenses[359550]
-            #result = client.get_product_info(apps=[359550])
-            tokens = client.get_access_tokens(app_ids=[359550])
-            print(tokens)
-            #print(result)
-            """
-            if result['apps'][359550]['_missing_token']:
-                print(result)
+            print("Community profile:", client.steam_id.community_url)
+            print("Last logon:", client.user.last_logon)
+            print("Last logoff:", client.user.last_logoff)
+            print("-"*30)
 
-                result = client.get_product_info(apps=[{'appid': 359550,
+        @client.on("disconnected")
+        def handle_disconnect():
+            print("Disconnected.")
+
+
+        @client.on("reconnect")
+        def handle_reconnect(delay):
+            print("Reconnect in: ", delay)
+
+    def prompt_login(self):
+        self.steam.cli_login()
+
+    def close(self):
+        if self.steam.logged_on:
+            print("Logout")
+            self.steam.logout()
+        if self.steam.connected:
+            self.steam.disconnect()
+
+    def get_has_r6(self):
+        tokens = self.steam.get_access_tokens(app_ids=[359550])
+        result = self.steam.get_product_info(apps=[{'appid': 359550,
                                                 'access_token': tokens['apps'][359550]
                                                 }])
-                print(result)
-                print("_missing_token is true")
-                print("Not Has R6!")
-                return "Not has R6:S"
-            else:
-                print("Has R6:S!")
-            """
-            #print(response)
-            client.logout()
-            return "Successful " + tokens
-        else:
-            return "Something not right!"
-    except SteamError as exp:
-        print(exp.eresult,exp.message)
-        return exp.eresult
-    except:
-        print("oh no")
-        return "Something got failed!"
+        print("Tokens: " + str(tokens))
+        print("missingtoken: " + str(result['apps'][359550]['_missing_token']))
+        return bool(result['apps'][359550]['_missing_token'])
     
+    def login(self,uname,pwd):
+        print("Login")
+        result = self.steam.login(username=uname,password=pwd,login_id=1337)
+        return result
     
+    def login2fa(self,uname,pwd,code,codetype):
+        print("Login with 2FA")
+        if codetype == "email":
+            print("Email Code")
+            result = self.steam.login(auth_code=code,username=uname,password=pwd,login_id=1337)
+            return result
+        if codetype == "code":
+            print("2FA Code")
+            result = self.steam.login(two_factor_code=code,username=uname,password=pwd,login_id=1337) 
+            return result
