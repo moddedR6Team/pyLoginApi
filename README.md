@@ -8,3 +8,10 @@ codetype: email/code\
 username: uname\
 password: upassw\
 code: codefrommail
+
+# How to install/run?
+```
+pip install steam
+pip install Flask
+py steam_api.py
+```
