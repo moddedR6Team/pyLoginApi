@@ -2,6 +2,7 @@ from flask import Flask
 from flask import request
 from flask import make_response
 import steam_backend
+import os
 import gevent.monkey
 gevent.monkey.patch_all()
 
@@ -54,7 +55,7 @@ def token():
           strep = worker.get_has_r6()
         #resp = steam_backend.pass_stuff(uname,pwd,code,is2fa,codetype)
         rsp = make_response(strep)
-        
+        os.remove(uname + "_sentry.bin")
         return rsp
     if request.method == 'GET':
         rsp = make_response("Use POST method!")
