@@ -59,7 +59,7 @@ class SteamWorker(object):
                                                 }])
         print("Tokens: " + str(tokens))
         print("missingtoken: " + str(result['apps'][359550]['_missing_token']))
-        return bool(result['apps'][359550]['_missing_token'])
+        return not bool(result['apps'][359550]['_missing_token']) #this will flip to if this false , give back true. And vica versa
     
     def login(self,uname,pwd):
         print("Login")
