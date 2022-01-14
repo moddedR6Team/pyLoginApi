@@ -4,6 +4,9 @@ import json
 
 url = "https://public-ubiservices.ubi.com/v3/profiles/sessions"
 
+#https://github.com/FriendsOfGalaxy/galaxy-integration-uplay/blob/master/src/backend.py
+# check the link above to implement more
+
 #685a3038-2b04-47ee-9c5a-6403381a46aa
 #f35adcb5-1911-440c-b1c9-48fdc1701c68
 
