@@ -5,6 +5,7 @@ import steam_backend
 import uplay
 import os
 import gevent.monkey
+import base64
 gevent.monkey.patch_all()
 
 app = Flask("pyAPI")
@@ -15,22 +16,7 @@ namelen = 6
 def home():
 	return "SlejmUr Test (API) Server ALIVE!\n" #+ "/api/enc or /api/dec"
 
-"""
-@app.route('/api/token/')
-def token():
-  b64 = request.headers.get('B64')
-  if b64 is not None:
-    response = ubi.get_ubiv1(b64)
-    resp = make_response(response)
-    return resp
 
-@app.route("/api/download/<name>")
-def api_download(name):
-  resp = make_response(f"download {escape(name)}!")
-  resp.headers["Is-Error"] = "None"
-  resp.headers["Data"] = name
-  return resp
-"""
 @app.route('/api/steam/',methods = ['GET', 'POST'])
 def steam():
     uname = request.headers.get('username')
@@ -64,32 +50,22 @@ def steam():
 
 @app.route('/api/ubisoft/',methods = ['GET', 'POST']) # implement ubisoft auth
 def ubisoft():
-    b64 = request.headers.get('B64')
-    if b64 is None:
-        resp = make_response("Are you sure you send this with B64 Decoded? base64(email:password)")
-	return resp
-    if request.method == 'POST':
-            response = uplay.get_ubiv1(b64)
-            resp = make_response(response)
-            return resp
-    if request.method == 'GET':
+  b64 = request.headers.get('B64')
+  email = request.headers.get('email')
+  password = request.headers.get('password')
+  data = email + ":"  + password
+  encodedBytes = base64.b64encode(data.encode("utf-8"))
+  encodedStr = str(encodedBytes, "utf-8")
+  if b64 is None:
+    b64 = encodedStr
+  if request.method == 'POST':
+      response = uplay.Uplay_Auth(b64)
+      resp = make_response(response)
+      return resp
+  if request.method == 'GET':
         rsp = make_response("Use POST method!")
         return rsp
-
-@app.route('/api/ubisoft/2fa',methods = ['GET', 'POST']) # future code, soon
-def ubisoft2fa():
-    b64 = request.headers.get('B64')
-    if b64 is None:
-        resp = make_response("Are you sure you send this with B64 Decoded? base64(email:password)")
-	return resp
-    if request.method == 'POST':
-            response = uplay.get_ubiv1(b64) # future code, soon
-            resp = make_response(response)
-            return resp
-    if request.method == 'GET':
-        rsp = make_response("Use POST method!")
-        return rsp
-
+      
 @app.errorhandler(404)
 def not_found(error):
     resp = make_response("ERROR 404", 404)
