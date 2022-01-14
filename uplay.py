@@ -30,7 +30,7 @@ def get_ubiv1(b64):
     headers["Content-Type"] = "application/json"
     headers["Authorization"] = "Basic " + b64
     headers["Ubi-RequestedPlatformType"] = "uplay"
-    data = '{"rememberMe": "true"}'
+    data = '{"rememberMe": true}'
     r = requests.post(url, headers=headers,data=data)
     print(r.content) # it print the full request to backend , need to be on try-catch(except)
     return "Yey"
