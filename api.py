@@ -2,11 +2,12 @@ from flask import Flask
 from flask import request
 from flask import make_response
 import steam_backend
+import uplay
 import os
 import gevent.monkey
 gevent.monkey.patch_all()
 
-app = Flask("SteamTest")
+app = Flask("pyAPI")
 dec = ""
 namelen = 6
 
@@ -30,8 +31,8 @@ def api_download(name):
   resp.headers["Data"] = name
   return resp
 """
-@app.route('/api/steam2fa/',methods = ['GET', 'POST'])
-def token():
+@app.route('/api/steam/',methods = ['GET', 'POST'])
+def steam():
     uname = request.headers.get('username')
     pwd = request.headers.get('password')
     is2fa = request.headers.get('has2fa')
@@ -61,9 +62,33 @@ def token():
         rsp = make_response("Use POST method!")
         return rsp
 
+@app.route('/api/ubisoft/',methods = ['GET', 'POST']) # implement ubisoft auth
+def ubisoft():
+    b64 = request.headers.get('B64')
+    if b64 is None:
+        resp = make_response("Are you sure you send this with B64 Decoded? base64(email:password)")
+	return resp
+    if request.method == 'POST':
+            response = uplay.get_ubiv1(b64)
+            resp = make_response(response)
+            return resp
+    if request.method == 'GET':
+        rsp = make_response("Use POST method!")
+        return rsp
 
-
-
+@app.route('/api/ubisoft/2fa',methods = ['GET', 'POST']) # future code, soon
+def ubisoft2fa():
+    b64 = request.headers.get('B64')
+    if b64 is None:
+        resp = make_response("Are you sure you send this with B64 Decoded? base64(email:password)")
+	return resp
+    if request.method == 'POST':
+            response = uplay.get_ubiv1(b64) # future code, soon
+            resp = make_response(response)
+            return resp
+    if request.method == 'GET':
+        rsp = make_response("Use POST method!")
+        return rsp
 
 @app.errorhandler(404)
 def not_found(error):
