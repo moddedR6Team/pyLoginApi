@@ -6,6 +6,7 @@ import uplay
 import os
 import gevent.monkey
 import base64
+import db
 gevent.monkey.patch_all()
 
 app = Flask("pyAPI")
@@ -66,6 +67,25 @@ def ubisoft():
         rsp = make_response("Use POST method!")
         return rsp
       
+@app.route('/api/db/verify/',methods = ['POST'])
+def test():
+    uname = request.headers.get('username')
+    token = request.headers.get('token')
+    response = db.set_token_used(uname,token)
+    resp = make_response(str(response))
+    return resp
+
+
+@app.route('/api/db/',methods = ['POST'])
+def test2():
+    uname = request.headers.get('username')
+    token = request.headers.get('token')
+    db.add_user(uname,token)
+    response = db.search_user(uname)
+    resp = make_response(str(response))
+    return resp
+
+      
 @app.errorhandler(404)
 def not_found(error):
     resp = make_response("ERROR 404", 404)
@@ -80,5 +100,6 @@ def error_500(error):
 
 def run():
   app.run(host='0.0.0.0', port=25565)
-        
+     
+db.create()   
 run()
