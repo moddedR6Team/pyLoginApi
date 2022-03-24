@@ -13,6 +13,7 @@ codetype: email/code
 username: uname
 password: upassw
 code: codefrommail
+token: serialsecret
 ```
 ### Ubisoft
 [POST] localhost:25565/api/ubisoft/
@@ -24,10 +25,17 @@ Headers:
 B64: base64(email:pass)
 email: email
 password: password
+token: serialsecret
 ```
 # How to install/run?
 ```
 pip install steam
 pip install Flask
+pip install pyjwt
 py api.py
 ```
+
+# Todo
+Need to do:
+- In /api/used/ point to check jwttoken before we make it to used
+- remove test cases
