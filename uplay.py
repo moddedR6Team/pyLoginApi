@@ -57,5 +57,4 @@ def Uplay_Auth(b64):
                   print("Has R6!")
                   hasr6 = True
     
-    print(hasr6) # <= This need to be saved in future database
-    return "Ubisoft name: " + name + " \nHas R6: " + str(hasr6) + " \nExpiration date: " + exp
+    return hasr6
