@@ -34,8 +34,8 @@ def Uplay_Auth(b64):
     exp = json_data["expiration"]
     sessionId = json_data["sessionId"]
     
-    print(name) # <= This need to be saved in future database
-    print(exp) # <= This need to be saved in future database
+    print(name)
+    print(exp)
     
     #Part2
     headers2 = CaseInsensitiveDict()

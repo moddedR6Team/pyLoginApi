@@ -18,6 +18,9 @@ namelen = 6
 def home():
 	return "SlejmUr Test (API) Server ALIVE!"
 
+@app.route('/status/')
+def status():
+	return make_response("Server Alive", 200)
 
 @app.route('/api/steam/',methods = ['GET', 'POST'])
 def steam():
@@ -42,12 +45,14 @@ def steam():
           strep = strep.replace(">","")
           strep = strep.replace(":"," -")
           strep = strep.replace("EResult.","")
+          rsp = strep
           if strep == "OK":
             strep = worker.get_has_r6()
+            rsp = make_response(strep)
             if strep == True:
-              toDb(uname,jwt_lib.generatetoken(uname))
-          #resp = steam_backend.pass_stuff(uname,pwd,code,is2fa,codetype)
-          rsp = make_response(strep)
+              jwttoken = jwt_lib.generatetoken(uname)
+              toDb(uname,jwttoken)
+              rsp.headers.add("access_token",tokentostr(jwttoken))
           os.remove(uname + "_sentry.bin")
           return rsp
       if request.method == 'GET':
@@ -65,16 +70,20 @@ def ubisoft():
   password = request.headers.get('password')
   token = request.headers.get('token')
   if jwt_lib.SERIAL_KEY_SECRET == token:
-    data = email + ":"  + password
-    encodedBytes = base64.b64encode(data.encode("utf-8"))
-    encodedStr = str(encodedBytes, "utf-8")
     if b64 is None:
-      b64 = encodedStr
+      data = email + ":"  + password
+      encodedBytes = base64.b64encode(data.encode("utf-8"))
+      encodedStr = str(encodedBytes, "utf-8")  
+      b64enc = encodedStr
+    else:
+      b64enc = b64
     if request.method == 'POST':
-        response = uplay.Uplay_Auth(b64)
+        response = uplay.Uplay_Auth(b64enc)
+        resp = make_response(str(response))
         if response == True:
-          toDb(email,jwt_lib.generatetoken(email))
-        resp = make_response(response)
+          jwttoken = jwt_lib.generatetoken(email)
+          toDb(email,jwttoken)
+          resp.headers.add("access_token",tokentostr(jwttoken))   
         return resp
     if request.method == 'GET':
           rsp = make_response("Use POST method!")
@@ -86,12 +95,15 @@ def ubisoft():
       
 @app.route('/api/verify/',methods = ['POST'])
 def verify():
-    uname = request.headers.get('username')
+    uname = request.headers.get('name')
     token = request.headers.get('token')
     if jwt_lib.SERIAL_KEY_SECRET == token:
       accesstoken = request.headers.get('access_token')
-      accesstoken = base64.b64decode(accesstoken)
-      response = jwt_lib.verify_jwt(uname,accesstoken)
+      tokenb64enc = base64.b64decode(accesstoken)
+      response = jwt_lib.verify_jwt(uname,tokenb64enc)
+      tokensearch = db.search_token(accesstoken)
+      if tokensearch==True:
+        response = "Token is exist! Not used"
     else:
       response = "Serial key is corrupt!"
     resp = make_response(str(response))
@@ -99,12 +111,21 @@ def verify():
 
 @app.route('/api/used/',methods = ['POST'])
 def apidb():
-    uname = request.headers.get('username')
+    uname = request.headers.get('name')
     token = request.headers.get('token')
     if jwt_lib.SERIAL_KEY_SECRET == token:
       accesstoken = request.headers.get('access_token')
-      accesstoken = base64.b64decode(accesstoken)
-      response = db.set_token_used(uname,accesstoken)
+      tokenb64enc = base64.b64decode(accesstoken)
+      verify = jwt_lib.verify_jwt(uname,tokenb64enc)
+      if verify==True:
+        tokensearch = db.search_token(accesstoken)
+        if tokensearch==True:
+          db.set_token_used(uname,accesstoken)
+          response = "Your token set to used"
+        else:     
+          response = "Token is used?"
+      else:
+        response = "This JWT key already used, expired?"
     else:
       response = "Serial key is corrupt!"
     resp = make_response(str(response))
@@ -115,20 +136,14 @@ def toDb(uname,token):
       response = str(response)
       response = response.replace("b'","")
       response = response.replace("'","")
-      db.add_user(uname,token)
+      db.add_user(uname,response)      
 
-@app.route('/api/db/test/',methods = ['POST'])
-def test():
-    uname = request.headers.get('username')
-    token = request.headers.get('token')
-    accesstoken = request.headers.get('access_token')
-    if jwt_lib.SERIAL_KEY_SECRET == token:
-      toDb(uname,accesstoken)
-    else:
-      response = "Serial key is corrupt!"
-    resp = make_response(str(response))
-    return resp
-      
+def tokentostr(token):
+  response = base64.b64encode(token['access_token'].encode("utf-8"))
+  response = str(response)
+  response = response.replace("b'","")
+  response = response.replace("'","")
+  return response
 
 @app.errorhandler(404)
 def not_found(error):

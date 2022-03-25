@@ -3,7 +3,7 @@ Python (Steam/Uplay) Login API with Steam(ValvePython)/Uplay and Flask
 
 To get you have R6:S POST to Localhost:25565 (Port can be edited!)
 
-### Steam:
+### Steam
 [POST] localhost:25565/api/steam/
 
 Headers:
@@ -27,6 +27,25 @@ email: email
 password: password
 token: serialsecret
 ```
+
+### Status
+[GET] localhost:25565/status/
+
+
+### Status
+[POST] localhost:25565/verify/
+```
+name: email or uname that your created a token,logged in
+token: serialsecret
+```
+
+### Status
+[POST] localhost:25565/used/
+```
+name: email or uname that your created a token,logged in
+token: serialsecret
+```
+
 # How to install/run?
 ```
 pip install steam
@@ -34,8 +53,3 @@ pip install Flask
 pip install pyjwt
 py api.py
 ```
-
-# Todo
-Need to do:
-- In /api/used/ point to check jwttoken before we make it to used
-- remove test cases
