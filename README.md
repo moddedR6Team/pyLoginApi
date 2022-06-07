@@ -2,6 +2,10 @@
 Python (Steam/Uplay) Login API with Steam(ValvePython)/Uplay and Flask
 
 To get you have R6:S POST to Localhost:25565 (Port can be edited!)
+Note:\
+If you want to use this to production or elsewhere you should edit the port to something else.\
+And obviously the localhost is will be your IP.\
+Also Flask ask you to dont use that stuff on production, I have no idea how to make that safe, so have fun 😎
 
 ### Steam
 [POST] localhost:25565/api/steam/
@@ -32,14 +36,14 @@ token: serialsecret
 [GET] localhost:25565/status/
 
 
-### Status
+### Verify
 [POST] localhost:25565/verify/
 ```
 name: email or uname that your created a token,logged in
 token: serialsecret
 ```
 
-### Status
+### Used
 [POST] localhost:25565/used/
 ```
 name: email or uname that your created a token,logged in
